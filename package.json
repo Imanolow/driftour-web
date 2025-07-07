@@ -22,9 +22,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ImanolLow/driftour-web.git"
+    "url": "https://github.com/Imanolow/driftour-web.git"
   },
-  "homepage": "https://imanollow.github.io/driftour-web/",
+  "homepage": "https://imanolow.github.io/driftour-web/",
   "engines": {
     "node": ">=14.0.0"
   }
