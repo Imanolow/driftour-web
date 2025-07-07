@@ -15,16 +15,16 @@
     "webapp",
     "javascript"
   ],
-  "author": "Tu Nombre",
+  "author": "ImanolLow",
   "license": "MIT",
   "devDependencies": {
     "live-server": "^1.2.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tu-usuario/driftour-web.git"
+    "url": "https://github.com/ImanolLow/driftour-web.git"
   },
-  "homepage": "https://tu-usuario.github.io/driftour-web/",
+  "homepage": "https://imanollow.github.io/driftour-web/",
   "engines": {
     "node": ">=14.0.0"
   }
