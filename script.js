@@ -1,5 +1,10 @@
+// Importar funciones de Supabase
+import { auth, tours } from './supabase.js';
+// import { stripe, createPaymentSession } from './stripe.js'; // Comentado por ahora
+
 // Variables globales
 let selectedTour = null;
+let selectedTourId = null; // ID real del tour de Supabase
 let selectedTime = '1h';
 let selectedAccessibility = [];
 let currentPoint = 1;
@@ -7,12 +12,15 @@ let totalPoints = 5;
 let currentRating = 0;
 let tourStarted = false;
 let isPremiumUser = false;
-let userName = 'Ana';
+let userName = 'Usuario/a';
 let isNightMode = false;
 let audioPlaying = false;
 let audioProgress = 0;
 let audioSpeed = 1;
 let audioInterval;
+
+// Mapeo de tipos de tour a IDs de Supabase
+let tourTypeToIdMap = {}
 
 // Sistema de notificaciones
 function showNotification(message, type = 'success', duration = 3000) {
@@ -200,9 +208,41 @@ function togglePremiumPopup() {
 }
 
 // Funciones del menú de usuario
-function showProfile() {
+async function showProfile() {
     closePopup('user-popup');
-    showNotification('Perfil de usuario - Próximamente disponible', 'info');
+    
+    // Obtener datos del usuario actual
+    const currentUser = await auth.getCurrentUser();
+    
+    if (currentUser) {
+        const userEmail = currentUser.email;
+        const userCreated = new Date(currentUser.created_at).toLocaleDateString('es-ES');
+        
+        // Obtener estadísticas del usuario
+        const stats = await getUserStats(currentUser.id);
+        
+        // Crear el contenido del perfil
+        const profileContent = `
+            <div style="text-align: center; padding: 20px;">
+                <h3>👤 Mi Perfil</h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <p><strong>Nombre:</strong> ${userName}</p>
+                    <p><strong>Email:</strong> ${userEmail}</p>
+                    <p><strong>Miembro desde:</strong> ${userCreated}</p>
+                </div>
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <p><strong>🎯 Tours Completados:</strong> ${stats.completedTours}</p>
+                    <p><strong>⭐ Puntuación Media:</strong> ${stats.averageRating}/5</p>
+                </div>
+                <button onclick="closeCustomPopup()" class="tour-btn" style="margin-top: 15px;">Cerrar</button>
+            </div>
+        `;
+        
+        // Crear popup personalizado
+        createCustomPopup('Perfil de Usuario', profileContent);
+    } else {
+        showNotification('Error al obtener datos del usuario', 'error');
+    }
 }
 
 function showSettings() {
@@ -213,9 +253,16 @@ function showSettings() {
 function logout() {
     closePopup('user-popup');
     if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        showScreen('login-screen');
-        toggleHeader(false);
-        showNotification('Sesión cerrada correctamente', 'info');
+        // Usar Supabase para cerrar sesión
+        auth.signOut().then(result => {
+            if (result.success) {
+                showScreen('login-screen');
+                toggleHeader(false);
+                showNotification('Sesión cerrada correctamente', 'info');
+            } else {
+                showNotification('Error al cerrar sesión', 'error');
+            }
+        });
     }
 }
 
@@ -266,12 +313,41 @@ function showScreen(screenId) {
     }
 }
 
+// Hacer las funciones accesibles globalmente para onclick
+window.showScreen = showScreen;
+window.closePopup = closePopup;
+window.closeCustomPopup = closeCustomPopup;
+window.showProfile = showProfile;
+window.showTourHistory = showTourHistory;
+window.showFavorites = showFavorites;
+window.toggleFavorite = toggleFavorite;
+window.toggleNightMode = toggleNightMode;
+window.showSettings = showSettings;
+window.logout = logout;
+window.subscribeToPremium = subscribeToPremium;
+window.selectTour = selectTour;
+window.selectHumanTour = selectHumanTour;
+window.copyLink = copyLink;
+window.initializeTour = initializeTour;
+window.nextPoint = nextPoint;
+window.revealLocation = revealLocation;
+window.toggleAudio = toggleAudio;
+window.skipExplanation = skipExplanation;
+window.changeSpeed = changeSpeed;
+window.showFunFacts = showFunFacts;
+window.selectRating = selectRating;
+window.submitRating = submitRating;
+window.shareOn = shareOn;
+
 // Función para seleccionar tour
 function selectTour(tourType) {
     selectedTour = tourType;
+    selectedTourId = tourTypeToIdMap[tourType] || null;
     currentPoint = 1; // Reiniciar el contador
     showScreen('share-screen');
     showNotification(`Tour ${tourType} seleccionado`, 'success');
+    
+    console.log('Tour seleccionado:', tourType, 'ID:', selectedTourId);
 }
 
 // Función para seleccionar tour teatralizado
@@ -281,8 +357,41 @@ function selectHumanTour(tourType) {
 }
 
 // Siguiente punto en el tour
-function nextPoint() {
+async function nextPoint() {
     currentPoint++;
+    
+    // Registrar progreso del tour en Supabase
+    const currentUser = await auth.getCurrentUser();
+    if (currentUser && selectedTourId) {
+        try {
+            const completed = currentPoint > totalPoints;
+            const progress = completed ? totalPoints : currentPoint - 1;
+            
+            if (completed) {
+                // Completar el tour
+                const result = await tours.completeTour(currentUser.id, selectedTourId, totalPoints);
+                if (result.success) {
+                    console.log('Tour completado y registrado en Supabase');
+                }
+            } else {
+                // Actualizar progreso
+                const result = await tours.updateTourProgress(
+                    currentUser.id, 
+                    selectedTourId, 
+                    currentPoint, 
+                    totalPoints, 
+                    progress, 
+                    false
+                );
+                if (result.success) {
+                    console.log('Progreso actualizado en Supabase');
+                }
+            }
+        } catch (error) {
+            console.error('Error al actualizar progreso del tour:', error);
+        }
+    }
+    
     if (currentPoint > totalPoints) {
         showScreen('rating-screen');
         showNotification('¡Tour completado! 🎉', 'success');
@@ -494,7 +603,7 @@ function updateRatingButtons() {
 }
 
 // Función para inicializar el tour
-function initializeTour() {
+async function initializeTour() {
     currentPoint = 1;
     audioProgress = 0;
     audioPlaying = false;
@@ -503,6 +612,19 @@ function initializeTour() {
     const progressFill = document.querySelector('.progress-fill');
     if (progressFill) {
         progressFill.style.width = progressPercent + '%';
+    }
+    
+    // Registrar el inicio del tour en Supabase
+    const currentUser = await auth.getCurrentUser();
+    if (currentUser && selectedTourId) {
+        try {
+            const result = await tours.startTour(currentUser.id, selectedTourId, totalPoints);
+            if (result.success) {
+                console.log('Tour iniciado y registrado en Supabase');
+            }
+        } catch (error) {
+            console.error('Error al registrar inicio del tour:', error);
+        }
     }
     
     const tourDescriptions = {
@@ -576,7 +698,7 @@ function initializeTour() {
     showNotification('Tour iniciado', 'success');
 }
 
-function submitRating() {
+async function submitRating() {
     if (currentRating === 0) {
         showNotification('Por favor, selecciona una puntuación antes de enviar', 'warning');
         return;
@@ -585,10 +707,27 @@ function submitRating() {
     const feedback = document.getElementById('feedback');
     const feedbackText = feedback ? feedback.value : '';
     
-    // Aquí se enviaría la valoración a la base de datos
-    console.log('Rating submitted:', { rating: currentRating, feedback: feedbackText });
-    
-    showNotification(`¡Gracias por tu valoración de ${currentRating} estrellas! 🌟`, 'success');
+    // Guardar rating en Supabase si hay usuario autenticado
+    try {
+        const user = await auth.getCurrentUser();
+        if (user && selectedTourId) {
+            // Usar el ID real del tour de Supabase
+            const result = await tours.saveTourRating(selectedTourId, user.id, currentRating, feedbackText);
+            
+            if (result.success) {
+                showNotification(`¡Gracias por tu valoración de ${currentRating} estrellas! 🌟`, 'success');
+            } else {
+                console.error('Error al guardar rating:', result.error);
+                showNotification('Error al guardar valoración, pero gracias por tu feedback', 'warning');
+            }
+        } else {
+            // Usuario no autenticado o tour no seleccionado
+            showNotification(`¡Gracias por tu valoración de ${currentRating} estrellas! 🌟`, 'success');
+        }
+    } catch (error) {
+        console.error('Error al procesar rating:', error);
+        showNotification(`¡Gracias por tu valoración de ${currentRating} estrellas! 🌟`, 'success');
+    }
 }
 
 function shareOn(platform) {
@@ -617,9 +756,405 @@ function copyLink() {
     }
 }
 
+// Función para cargar tours desde Supabase
+async function loadToursFromSupabase() {
+    try {
+        const toursData = await tours.getTours();
+        if (toursData && toursData.length > 0) {
+            console.log('Tours cargados desde Supabase:', toursData);
+            updateToursDisplay(toursData);
+            showNotification(`${toursData.length} tours cargados desde la base de datos 🎉`, 'success', 2000);
+        } else {
+            console.log('No se encontraron tours, usando tours estáticos');
+            showNotification('Usando tours de ejemplo', 'info', 2000);
+        }
+    } catch (error) {
+        console.error('Error al cargar tours:', error);
+        showNotification('Error al cargar tours, usando ejemplos locales', 'warning', 3000);
+    }
+}
+
+// Función para actualizar la visualización de tours
+function updateToursDisplay(toursData) {
+    const tourSections = {
+        clasicos: document.querySelector('.tour-section.clasicos .tour-options'),
+        tematicos: document.querySelector('.tour-section.tematicos .tour-options'),
+        teatralizados: document.querySelector('.tour-section.teatralizados .tour-options')
+    };
+    
+    // Limpiar todas las secciones para cargar tours desde Supabase
+    Object.values(tourSections).forEach(section => {
+        if (section) section.innerHTML = '';
+    });
+    
+    // Clasificar tours por tipo
+    toursData.forEach(tour => {
+        const tourCard = createTourCard(tour);
+        
+        switch(tour.type) {
+            case 'simple':
+            case 'adventure':
+            case 'historic':
+                if (tourSections.clasicos) {
+                    tourSections.clasicos.appendChild(tourCard);
+                    console.log('Tour clásico agregado:', tour.title);
+                }
+                break;
+            case 'themed':
+                if (tourSections.tematicos) {
+                    tourSections.tematicos.appendChild(tourCard);
+                    console.log('Tour temático agregado:', tour.title);
+                }
+                break;
+            case 'theatrical':
+                if (tourSections.teatralizados) {
+                    tourSections.teatralizados.appendChild(tourCard);
+                    console.log('Tour teatralizado agregado:', tour.title);
+                }
+                break;
+        }
+    });
+    
+    // Actualizar favoritos después de cargar tours
+    updateFavoritesUI();
+}
+
+// Función para crear una tarjeta de tour
+function createTourCard(tour) {
+    const card = document.createElement('div');
+    card.className = 'tour-card';
+    card.dataset.tour = tour.id || tour.type;
+    
+    const price = tour.price === 0 ? 'Gratis' : `${tour.price}€`;
+    const isPremium = tour.is_premium ? '⭐' : '';
+    const isFavorite = userFavorites.has(tour.id || tour.type);
+    
+    card.innerHTML = `
+        <div class="tour-header">
+            <h3>${getTypeIcon(tour.type)} ${tour.title} ${isPremium}</h3>
+            <div class="tour-header-right">
+                <span class="tour-price">${price}</span>
+                <button class="favorite-btn" onclick="toggleFavorite('${tour.id || tour.type}')" 
+                        style="background: none; border: none; font-size: 20px; cursor: pointer; margin-left: 10px; color: ${isFavorite ? '#dc3545' : '#6c757d'};">
+                    ${isFavorite ? '❤️' : '🤍'}
+                </button>
+            </div>
+        </div>
+        <p>${tour.description}</p>
+        <button class="tour-btn" onclick="selectTour('${tour.type}')">Seleccionar</button>
+    `;
+    
+    return card;
+}
+
+// Función para obtener el icono según el tipo de tour
+function getTypeIcon(type) {
+    const icons = {
+        simple: '🏛️',
+        adventure: '🔍',
+        historic: '👨‍🎓',
+        themed: '🎭',
+        theatrical: '🎨'
+    };
+    return icons[type] || '📍';
+}
+
+// Función para crear popup personalizado
+function createCustomPopup(title, content) {
+    // Remover popup existente si existe
+    const existingPopup = document.getElementById('custom-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+    
+    // Crear nuevo popup
+    const popup = document.createElement('div');
+    popup.id = 'custom-popup';
+    popup.className = 'popup-overlay';
+    popup.style.display = 'flex';
+    popup.style.zIndex = '10000';
+    
+    popup.innerHTML = `
+        <div class="popup-content" style="max-width: 400px; width: 90%;">
+            <div class="popup-header">
+                <h3>${title}</h3>
+                <button class="close-btn" onclick="closeCustomPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                ${content}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Cerrar al hacer clic fuera del popup
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            closeCustomPopup();
+        }
+    });
+}
+
+// Función para cerrar popup personalizado
+function closeCustomPopup() {
+    const popup = document.getElementById('custom-popup');
+    if (popup) {
+        popup.remove();
+    }
+}
+
+// Función para obtener estadísticas del usuario
+async function getUserStats(userId) {
+    try {
+        const stats = await tours.getUserStats(userId);
+        return stats;
+    } catch (error) {
+        console.error('Error al obtener estadísticas:', error);
+        return {
+            completedTours: 0,
+            averageRating: 0
+        };
+    }
+}
+
+// Función para mostrar historial de tours
+async function showTourHistory() {
+    closePopup('user-popup');
+    
+    const currentUser = await auth.getCurrentUser();
+    
+    if (!currentUser) {
+        showNotification('Inicia sesión para ver tu historial', 'warning');
+        return;
+    }
+    
+    try {
+        const progress = await tours.getUserProgress(currentUser.id);
+        const allTours = await tours.getTours();
+        
+        if (progress.length === 0) {
+            const content = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3>📚 Historial de Tours</h3>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                        <p>🎯 Aún no has completado ningún tour.</p>
+                        <p>¡Explora Bilbao y empieza tu aventura!</p>
+                    </div>
+                    <button onclick="closeCustomPopup()" class="tour-btn">Cerrar</button>
+                </div>
+            `;
+            
+            createCustomPopup('Historial de Tours', content);
+            return;
+        }
+        
+        let historyContent = '<div style="max-height: 400px; overflow-y: auto;">';
+        
+        for (const item of progress) {
+            // Buscar información del tour
+            const tourInfo = allTours.find(t => t.id === item.tour_id);
+            const tourName = tourInfo ? tourInfo.title : `Tour ${item.tour_id}`;
+            
+            const startedDate = new Date(item.started_at).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            const completedDate = item.completed_at ? 
+                new Date(item.completed_at).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                }) : null;
+            
+            const progressPercent = item.total_points > 0 ? 
+                Math.round((item.progress / item.total_points) * 100) : 0;
+            
+            const isCompleted = item.completed;
+            const statusIcon = isCompleted ? '✅' : '⏳';
+            const statusText = isCompleted ? 'Completado' : 'En progreso';
+            const statusColor = isCompleted ? '#28a745' : '#ffc107';
+            const bgColor = isCompleted ? '#e8f5e8' : '#fff3cd';
+            
+            historyContent += `
+                <div style="background: ${bgColor}; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid ${statusColor};">
+                    <h4 style="margin: 0 0 10px 0; color: #333;">${statusIcon} ${tourName}</h4>
+                    <p style="margin: 5px 0; color: #666;"><strong>Progreso:</strong> ${progressPercent}% (${item.progress}/${item.total_points} puntos)</p>
+                    <p style="margin: 5px 0; color: #666;"><strong>Estado:</strong> ${statusText}</p>
+                    <p style="margin: 5px 0; color: #666;"><strong>Iniciado:</strong> ${startedDate}</p>
+                    ${completedDate ? `<p style="margin: 5px 0; color: #666;"><strong>Completado:</strong> ${completedDate}</p>` : ''}
+                </div>
+            `;
+        }
+        
+        historyContent += '</div>';
+        
+        const fullContent = `
+            <div style="text-align: center; padding: 20px;">
+                <h3>📚 Historial de Tours</h3>
+                ${historyContent}
+                <button onclick="closeCustomPopup()" class="tour-btn" style="margin-top: 15px;">Cerrar</button>
+            </div>
+        `;
+        
+        createCustomPopup('Historial de Tours', fullContent);
+        
+    } catch (error) {
+        console.error('Error al obtener historial:', error);
+        showNotification('Error al cargar el historial', 'error');
+    }
+}
+
+// Sistema de favoritos
+let userFavorites = new Set();
+
+// Función para obtener favoritos del usuario
+async function loadUserFavorites() {
+    const currentUser = await auth.getCurrentUser();
+    if (!currentUser) return;
+    
+    try {
+        const favorites = await tours.getUserFavorites(currentUser.id);
+        userFavorites = new Set(favorites.map(f => f.tour_id));
+        
+        // Actualizar UI de tours estáticos
+        initializeStaticFavorites();
+    } catch (error) {
+        console.error('Error al cargar favoritos:', error);
+        if (error.message && error.message.includes('user_favorites')) {
+            console.warn('⚠️ Tabla user_favorites no existe. Ejecuta add-favorites-table.sql en Supabase');
+        }
+    }
+}
+
+// Función para alternar favorito
+async function toggleFavorite(tourId) {
+    const currentUser = await auth.getCurrentUser();
+    if (!currentUser) {
+        showNotification('Inicia sesión para guardar favoritos', 'warning');
+        return;
+    }
+    
+    try {
+        if (userFavorites.has(tourId)) {
+            await tours.removeFavorite(currentUser.id, tourId);
+            userFavorites.delete(tourId);
+            showNotification('Tour eliminado de favoritos', 'info');
+        } else {
+            await tours.addFavorite(currentUser.id, tourId);
+            userFavorites.add(tourId);
+            showNotification('Tour agregado a favoritos ⭐', 'success');
+        }
+        
+        // Actualizar UI de favoritos
+        updateFavoritesUI();
+    } catch (error) {
+        console.error('Error al actualizar favorito:', error);
+        if (error.message && error.message.includes('user_favorites')) {
+            showNotification('⚠️ Tabla favoritos no configurada. Contacta al administrador', 'warning');
+        } else {
+            showNotification('Error al actualizar favorito', 'error');
+        }
+    }
+}
+
+// Función para mostrar favoritos
+async function showFavorites() {
+    closePopup('user-popup');
+    
+    const currentUser = await auth.getCurrentUser();
+    if (!currentUser) {
+        showNotification('Inicia sesión para ver tus favoritos', 'warning');
+        return;
+    }
+    
+    try {
+        const favorites = await tours.getUserFavorites(currentUser.id);
+        
+        if (favorites.length === 0) {
+            const content = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3>⭐ Mis Favoritos</h3>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                        <p>❤️ Aún no tienes tours favoritos.</p>
+                        <p>¡Marca como favorito los tours que más te gusten!</p>
+                    </div>
+                    <button onclick="closeCustomPopup()" class="tour-btn">Cerrar</button>
+                </div>
+            `;
+            
+            createCustomPopup('Mis Favoritos', content);
+            return;
+        }
+        
+        let favoritesContent = '<div style="max-height: 400px; overflow-y: auto;">';
+        
+        for (const favorite of favorites) {
+            const addedDate = new Date(favorite.created_at).toLocaleDateString('es-ES');
+            
+            favoritesContent += `
+                <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ffc107;">
+                    <h4 style="margin: 0 0 10px 0;">⭐ Tour ${favorite.tour_id}</h4>
+                    <p><strong>Agregado:</strong> ${addedDate}</p>
+                    <button onclick="toggleFavorite('${favorite.tour_id}')" class="tour-btn" style="background: #dc3545; margin-top: 10px;">
+                        Eliminar de favoritos
+                    </button>
+                </div>
+            `;
+        }
+        
+        favoritesContent += '</div>';
+        
+        const fullContent = `
+            <div style="text-align: center; padding: 20px;">
+                <h3>⭐ Mis Favoritos</h3>
+                ${favoritesContent}
+                <button onclick="closeCustomPopup()" class="tour-btn" style="margin-top: 15px;">Cerrar</button>
+            </div>
+        `;
+        
+        createCustomPopup('Mis Favoritos', fullContent);
+        
+    } catch (error) {
+        console.error('Error al obtener favoritos:', error);
+        showNotification('Error al cargar favoritos', 'error');
+    }
+}
+
+// Función para actualizar la UI de favoritos
+function updateFavoritesUI() {
+    const tourCards = document.querySelectorAll('.tour-card');
+    
+    tourCards.forEach(card => {
+        const tourId = card.dataset.tour;
+        const favoriteBtn = card.querySelector('.favorite-btn');
+        
+        if (favoriteBtn && tourId) {
+            if (userFavorites.has(tourId)) {
+                favoriteBtn.innerHTML = '❤️';
+                favoriteBtn.style.color = '#dc3545';
+            } else {
+                favoriteBtn.innerHTML = '🤍';
+                favoriteBtn.style.color = '#6c757d';
+            }
+        }
+    });
+}
+
+// Función para inicializar favoritos (ya no necesaria con tours dinámicos)
+function initializeStaticFavorites() {
+    // Esta función ya no es necesaria ya que todos los tours se cargan desde Supabase
+    // y se inicializan automáticamente en updateToursDisplay()
+}
+
 // Inicialización de la aplicación
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 DrifTour App inicializada');
+    
+    // Cargar mapeo de tipos de tour a IDs
+    loadTourTypeMapping();
     
     // Configurar event listeners para la cabecera
     const userInfo = document.getElementById('user-info');
@@ -683,6 +1218,92 @@ document.addEventListener('DOMContentLoaded', function() {
     // Actualizar estado inicial del usuario
     updateUserStatus();
     
+    // Cargar tours desde Supabase
+    loadToursFromSupabase();
+    
+    // Cargar favoritos del usuario
+    loadUserFavorites();
+    
+    // Event listeners para eventos de autenticación de Supabase
+    window.addEventListener('userSignedIn', function(event) {
+        const user = event.detail;
+        userName = user.user_metadata?.name || 'Usuario';
+        updateUserStatus();
+        showNotification(`¡Bienvenido ${userName}! 🎉`, 'success');
+        
+        // Cargar favoritos del usuario
+        loadUserFavorites();
+        
+        // Mostrar pantalla principal si estamos en login
+        if (document.getElementById('login-screen').classList.contains('active')) {
+            showScreen('map-screen');
+        }
+    });
+    
+    window.addEventListener('userSignedOut', function() {
+        userName = 'Invitado';
+        updateUserStatus();
+        showNotification('Sesión cerrada', 'info');
+        showScreen('login-screen');
+    });
+    
+    // Event listeners para botones de login y registro
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const registerLink = document.getElementById('register-link');
+    const loginLink = document.getElementById('login-link');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showNotification('Por favor, completa todos los campos', 'warning');
+                return;
+            }
+            
+            // Intentar iniciar sesión con Supabase
+            const result = await auth.signIn(email, password);
+            if (result.success) {
+                showNotification('¡Bienvenido! 🎉', 'success');
+                showScreen('map-screen');
+            } else {
+                showNotification('Error al iniciar sesión: ' + result.error, 'error');
+            }
+        });
+    }
+    
+    if (registerBtn) {
+        registerBtn.addEventListener('click', async function() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            if (!name || !email || !password) {
+                showNotification('Por favor, completa todos los campos', 'warning');
+                return;
+            }
+            
+            // Intentar registrar con Supabase
+            const result = await auth.signUp(email, password, name);
+            if (result.success) {
+                showNotification('¡Cuenta creada! Revisa tu email para confirmar', 'success');
+                showScreen('login-screen');
+            } else {
+                showNotification('Error al crear cuenta: ' + result.error, 'error');
+            }
+        });
+    }
+    
+    if (registerLink) {
+        registerLink.addEventListener('click', () => showScreen('register-screen'));
+    }
+    
+    if (loginLink) {
+        loginLink.addEventListener('click', () => showScreen('login-screen'));
+    }
+    
     // Mostrar notificación de bienvenida
     setTimeout(() => {
         showNotification('¡Bienvenido a DrifTour! 🎉', 'info', 3000);
@@ -699,3 +1320,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('SW registrado con éxito: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+} else if (location.protocol === 'http:') {
+  console.log('Service Worker no registrado (requiere HTTPS)');
+}
+
+// Función para cargar el mapeo de tipos de tour a IDs
+async function loadTourTypeMapping() {
+    try {
+        const allTours = await tours.getTours();
+        tourTypeToIdMap = {};
+        
+        for (const tour of allTours) {
+            tourTypeToIdMap[tour.type] = tour.id;
+        }
+        
+        console.log('Mapeo de tours cargado:', tourTypeToIdMap);
+    } catch (error) {
+        console.error('Error al cargar mapeo de tours:', error);
+    }
+}

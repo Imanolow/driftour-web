@@ -108,13 +108,18 @@ body.night-mode {
 .logo {
   font-size: 36px;
   font-weight: 800;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: white;
   margin-bottom: 12px;
   letter-spacing: -0.02em;
-  animation: logoGlow 3s ease-in-out infinite alternate;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-center .logo {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes logoGlow {
@@ -439,6 +444,12 @@ body.night-mode {
   margin-bottom: 8px;
 }
 
+.tour-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .tour-header h3 {
   color: #333;
   font-size: 16px;
@@ -453,6 +464,19 @@ body.night-mode {
   font-weight: 600;
   background: #fff3cd;
   color: #856404;
+}
+
+.favorite-btn {
+  background: none !important;
+  border: none !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: transform 0.2s ease !important;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2) !important;
 }
 
 .human-tour-card {
@@ -586,12 +610,17 @@ body.night-mode {
   flex: 1;
 }
 
-.header-left .logo {
-  font-size: 28px;
-  font-weight: 800;
-  color: white;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.header-left {
+  justify-content: flex-start;
+}
+
+.header-center {
+  justify-content: center;
+  padding: 0 20px; /* Dar espacio para el botón premium */
+}
+
+.header-right {
+  justify-content: flex-end;
 }
 
 .header-center {
@@ -641,16 +670,30 @@ body.night-mode {
   background: #ffd700;
   color: #333;
   border: none;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 14px;
+  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-  white-space: nowrap;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  min-width: 50px;
+  max-width: 55px;
+}
+
+.premium-btn .premium-line1,
+.premium-btn .premium-line2 {
+  display: block;
+}
+
+.premium-btn .premium-line2 {
+  margin-top: 1px;
 }
 
 .premium-btn:hover {
@@ -1274,6 +1317,183 @@ body.night-mode {
   background: var(--night-card);
   border-color: var(--night-border);
   color: var(--night-text);
+}
+
+/* Estilos para modales de pago */
+.payment-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 20px;
+}
+
+.payment-modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.payment-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.close-payment-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-body {
+  padding: 20px;
+}
+
+.payment-details {
+  margin-bottom: 20px;
+}
+
+.payment-details h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.payment-details ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.payment-details li {
+  padding: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.tour-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  margin-top: 10px;
+}
+
+.payment-form {
+  margin-bottom: 20px;
+}
+
+#card-element,
+#card-element-tour {
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #f9f9f9;
+}
+
+#card-element:focus,
+#card-element-tour:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#card-errors,
+#card-errors-tour {
+  color: #e74c3c;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.btn-premium {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-premium:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Estilos para tours premium */
+.tour-card.premium {
+  border: 2px solid #ffd700;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+}
+
+.tour-card.premium .tour-price {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.tour-card.purchased {
+  border: 2px solid #27ae60;
+  background: linear-gradient(135deg, #e8f5e8 0%, #ffffff 100%);
+}
+
+.tour-card.purchased .tour-btn {
+  background: #27ae60;
+  color: white;
+}
+
+.tour-card.purchased .tour-btn:hover {
+  background: #229954;
+}
+
+/* Responsive para modales */
+@media (max-width: 768px) {
+  .payment-modal {
+    padding: 10px;
+  }
+  
+  .payment-modal-content {
+    max-width: 100%;
+    margin: 0;
+  }
 }
 
 /* Responsive */

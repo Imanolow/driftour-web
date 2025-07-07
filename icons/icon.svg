@@ -1,0 +1,7 @@
+<!-- Placeholder SVG icon for PWA -->
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="192" height="192" rx="24" fill="#667eea"/>
+    <path d="M48 96C48 69.49 69.49 48 96 48C122.51 48 144 69.49 144 96C144 122.51 122.51 144 96 144C69.49 144 48 122.51 48 96Z" fill="white"/>
+    <path d="M96 72C109.255 72 120 82.745 120 96C120 109.255 109.255 120 96 120C82.745 120 72 109.255 72 96C72 82.745 82.745 72 96 72Z" fill="#667eea"/>
+    <text x="96" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">DT</text>
+</svg>

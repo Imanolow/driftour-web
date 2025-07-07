@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "live-server --port=3000 --open=index.html",
     "build": "echo 'Building for production...'",
-    "deploy": "echo 'Deploying to production...'"
+    "deploy": "echo 'Deploying to production...'",
+    "setup-supabase": "supabase init && supabase db start",
+    "db-reset": "supabase db reset"
   },
   "keywords": [
     "tours",
@@ -19,6 +21,9 @@
   "license": "MIT",
   "devDependencies": {
     "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
   },
   "repository": {
     "type": "git",

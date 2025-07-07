@@ -104,5 +104,8 @@ Thumbs.db
 # Supabase
 .supabase/
 
+# Configuración con claves secretas
+config.js
+
 # Stripe keys (when added)
 stripe_keys.txt

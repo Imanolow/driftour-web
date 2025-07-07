@@ -3,8 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Descubre Bilbao con tours personalizados e interactivos">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DrifTour">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <title>DrifTour - Descubre Bilbao</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Stripe se añadirá cuando sea necesario -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
 </head>
 <body>
     <div class="container" id="main-container">
@@ -14,15 +24,17 @@
         <header class="app-header" id="app-header">
             <div class="header-left">
                 <div class="user-info" id="user-info">
-                    <span class="user-name" id="user-name">Ana</span>
-                    <span class="user-type" id="user-type">(Gratuito)</span>
+                    <span class="user-name" id="user-name">Usuario/a</span>
                 </div>
             </div>
             <div class="header-center">
                 <div class="logo">DrifTour</div>
             </div>
             <div class="header-right">
-                <button class="premium-btn" id="premium-btn">Hazte Premium</button>
+                <button class="premium-btn" id="premium-btn">
+                    <span class="premium-line1">Hazte</span>
+                    <span class="premium-line2">Premium</span>
+                </button>
             </div>
         </header>
 
@@ -35,6 +47,8 @@
                 </div>
                 <div class="popup-body">
                     <button class="popup-btn" onclick="showProfile()">👤 Mi Perfil</button>
+                    <button class="popup-btn" onclick="showTourHistory()">📚 Historial de Tours</button>
+                    <button class="popup-btn" onclick="showFavorites()">⭐ Mis Favoritos</button>
                     <button class="popup-btn" onclick="toggleNightMode()">
                         <span id="night-mode-icon">🌙</span>
                         <span id="night-mode-text">Modo Nocturno</span>
@@ -89,9 +103,9 @@
                 <input type="password" id="password" placeholder="••••••••">
             </div>
             
-            <button class="btn" onclick="showScreen('map-screen')">Iniciar Sesión</button>
+            <button class="btn" id="login-btn">Iniciar Sesión</button>
             
-            <button class="link-btn" onclick="showScreen('register-screen')">¿No tienes cuenta? Regístrate</button>
+            <button class="link-btn" id="register-link">¿No tienes cuenta? Regístrate</button>
         </div>
 
         <!-- Pantalla 1b: Registro -->
@@ -117,9 +131,9 @@
                 <input type="password" id="reg-password" placeholder="••••••••">
             </div>
             
-            <button class="btn" onclick="showScreen('map-screen')">Crear Cuenta</button>
+            <button class="btn" id="register-btn">Crear Cuenta</button>
             
-            <button class="link-btn" onclick="showScreen('login-screen')">¿Ya tienes cuenta? Inicia sesión</button>
+            <button class="link-btn" id="login-link">¿Ya tienes cuenta? Inicia sesión</button>
         </div>
 
         <!-- Pantalla 2: Mapa y Selección de Tour -->
@@ -163,32 +177,7 @@
             <div class="tour-section clasicos">
                 <h2>🗺️ Tours Clásicos</h2>
                 <div class="tour-options">
-                    <div class="tour-card" data-tour="simple">
-                        <div class="tour-header">
-                            <h3>🏛️ Tour Simple</h3>
-                            <span class="tour-price">Gratis</span>
-                        </div>
-                        <p>Descubre los 5 lugares más emblemáticos de Bilbao con explicaciones detalladas.</p>
-                        <button class="tour-btn" onclick="selectTour('simple')">Seleccionar</button>
-                    </div>
-                    
-                    <div class="tour-card" data-tour="adventure">
-                        <div class="tour-header">
-                            <h3>🔍 Tour Aventura</h3>
-                            <span class="tour-price">Gratis</span>
-                        </div>
-                        <p>Resuelve pistas y descubre lugares secretos en una experiencia gamificada única.</p>
-                        <button class="tour-btn" onclick="selectTour('adventure')">Seleccionar</button>
-                    </div>
-                    
-                    <div class="tour-card" data-tour="historic">
-                        <div class="tour-header">
-                            <h3>👨‍🎓 Tour Histórico</h3>
-                            <span class="tour-price">Gratis</span>
-                        </div>
-                        <p>Camina junto a Miguel de Unamuno y descubre la historia profunda de cada rincón.</p>
-                        <button class="tour-btn" onclick="selectTour('historic')">Seleccionar</button>
-                    </div>
+                    <!-- Tours se cargan dinámicamente desde Supabase -->
                 </div>
             </div>
 
@@ -213,83 +202,15 @@
 
             <div class="tour-section tematicos">
                 <h2>🎭 Tours Temáticos</h2>
-                <div class="tour-options human-tours">
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>🏛️ Tour BBK Live</h3>
-                        <span class="tour-price">Con entrada</span>
-                    </div>
-                    <p>Escanea el código QR de tu entrada y disfruta de este Tour completamente gratis!</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('bbk')">Escanear QR</button>
-                </div>
-
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>🎉 Tour Aste Nagusia</h3>
-                        <span class="tour-price">15€</span>
-                    </div>
-                    <p>Sigue a Marijaia y conoce la historia de las fiestas más famosas con tus amig@s.</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('aste')">Reservar Tour</button>
-                </div>
-
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>👻 Tour FANT</h3>
-                        <span class="tour-price">Con entrada</span>
-                    </div>
-                    <p>Escanea tu entrada del FANT para vivir este exclusivo tour de terror por las calles de Bilbao!</p>
-                    <button class="human-tour-btn" style="background: linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%);" onclick="selectHumanTour('fant')">Escanear Entrada</button>
-                </div>
-
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>🍷 Tour Txikitero</h3>
-                        <span class="tour-price">25€</span>
-                    </div>
-                    <p>La historia de los bares y pintxos más emblemáticos de Bilbao. ¡Delicioso!</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('txikitero')">Reservar Tour</button>
-                </div>
+                <div class="tour-options">
+                    <!-- Tours se cargan dinámicamente desde Supabase -->
                 </div>
             </div>
 
             <div class="tour-section teatralizados">
                 <h2>🎨 Tours Teatralizados</h2>
-                <div class="tour-options human-tours">
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>🏰 Tour Medieval</h3>
-                        <span class="tour-price">20€</span>
-                    </div>
-                    <p>Revive la fundación de Bilbao con actores caracterizados como comerciantes medievales del siglo XIV</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('medieval')">Reservar Tour</button>
-                </div>
-
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>⚔️ Tour Carlista</h3>
-                        <span class="tour-price">18€</span>
-                    </div>
-                    <p>Sumérgete en las batallas del siglo XIX con soldados carlistas y liberales en las calles de Bilbao</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('carlista')">Reservar Tour</button>
-                </div>
-
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>🏭 Tour Industrial</h3>
-                        <span class="tour-price">22€</span>
-                    </div>
-                    <p>Conoce a los magnates del hierro y obreros que transformaron Bilbao en la Manchester del Norte</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('industrial')">Reservar Tour</button>
-                </div>
-
-                <div class="human-tour-card">
-                    <div class="tour-header">
-                        <h3>📚 Tour Unamuno</h3>
-                        <span class="tour-price">16€</span>
-                    </div>
-                    <p>Pasea con Miguel de Unamuno y otros intelectuales vascos por la Bilbao de principios del siglo XX</p>
-                    <button class="human-tour-btn" onclick="selectHumanTour('unamuno')">Reservar Tour</button>
-                </div>
+                <div class="tour-options">
+                    <!-- Tours se cargan dinámicamente desde Supabase -->
                 </div>
             </div>
             
@@ -444,6 +365,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="supabase.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
