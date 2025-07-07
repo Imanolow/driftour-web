@@ -7,26 +7,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="notification-container"></div>
-    
     <div class="container" id="main-container">
+        <div id="notification-container"></div>
+        
         <!-- Cabecera de la app -->
         <header class="app-header" id="app-header">
             <div class="header-left">
-                <div class="logo">DrifTour</div>
-            </div>
-            <div class="header-center">
                 <div class="user-info" id="user-info">
                     <span class="user-name" id="user-name">Ana</span>
                     <span class="user-type" id="user-type">(Gratuito)</span>
                 </div>
             </div>
+            <div class="header-center">
+                <div class="logo">DrifTour</div>
+            </div>
             <div class="header-right">
                 <button class="premium-btn" id="premium-btn">Hazte Premium</button>
-                <button class="night-mode-btn" onclick="toggleNightMode()">
-                    <span id="night-mode-icon">🌙</span>
-                    <span id="night-mode-text">Modo Nocturno</span>
-                </button>
             </div>
         </header>
 
@@ -39,6 +35,10 @@
                 </div>
                 <div class="popup-body">
                     <button class="popup-btn" onclick="showProfile()">👤 Mi Perfil</button>
+                    <button class="popup-btn" onclick="toggleNightMode()">
+                        <span id="night-mode-icon">🌙</span>
+                        <span id="night-mode-text">Modo Nocturno</span>
+                    </button>
                     <button class="popup-btn" onclick="showSettings()">⚙️ Configuración</button>
                     <button class="popup-btn logout" onclick="logout()">🚪 Cerrar Sesión</button>
                 </div>
