@@ -553,11 +553,11 @@ body.night-mode {
 }
 
 .screen.with-header .back-btn {
-  top: 80px;
+  top: 90px;
 }
 
 .screen.with-header {
-  padding-top: 80px;
+  padding-top: 90px;
   padding-left: 20px;
   padding-right: 20px;
   padding-bottom: 20px;
@@ -568,7 +568,7 @@ body.night-mode {
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
+  height: 70px;
   background: var(--primary-gradient);
   display: flex;
   align-items: center;
@@ -586,13 +586,21 @@ body.night-mode {
   flex: 1;
 }
 
+.header-left .logo {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 .header-center {
   justify-content: center;
 }
 
 .header-right {
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
 .night-mode .app-header {
@@ -633,9 +641,9 @@ body.night-mode {
   background: #ffd700;
   color: #333;
   border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -655,14 +663,14 @@ body.night-mode {
   background: rgba(255,255,255,0.1);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 6px 10px;
+  border-radius: 16px;
   font-size: 11px;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   backdrop-filter: blur(10px);
 }
 
@@ -1056,8 +1064,8 @@ body.night-mode {
 
 #notification-container {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 85px;
+  right: 20px;
   z-index: 2000;
   max-width: 280px;
   pointer-events: none;
