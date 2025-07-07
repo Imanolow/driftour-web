@@ -1,12 +1,13 @@
 const CACHE_NAME = 'driftour-v1';
+const BASE_PATH = '/driftour-web';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/script.js',
-  '/supabase.js',
-  '/stripe.js',
-  '/manifest.json',
+  BASE_PATH + '/',
+  BASE_PATH + '/index.html',
+  BASE_PATH + '/styles.css',
+  BASE_PATH + '/script.js',
+  BASE_PATH + '/supabase.js',
+  BASE_PATH + '/stripe.js',
+  BASE_PATH + '/manifest.json',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
   'https://js.stripe.com/v3/',
   // Agregar más recursos según sea necesario

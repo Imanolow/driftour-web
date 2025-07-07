@@ -2,12 +2,12 @@
   "name": "DrifTour - Descubre Bilbao",
   "short_name": "DrifTour",
   "description": "Descubre Bilbao con tours personalizados e interactivos",
-  "start_url": "/",
+  "start_url": "/driftour-web/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": "/driftour-web/",
   "lang": "es",
   "icons": [
     {
