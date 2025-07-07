@@ -1,0 +1,31 @@
+{
+  "name": "driftour-web",
+  "version": "1.0.0",
+  "description": "Una aplicación web moderna para descubrir tours y experiencias en Bilbao",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=3000 --open=index.html",
+    "build": "echo 'Building for production...'",
+    "deploy": "echo 'Deploying to production...'"
+  },
+  "keywords": [
+    "tours",
+    "bilbao",
+    "travel",
+    "webapp",
+    "javascript"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/driftour-web.git"
+  },
+  "homepage": "https://tu-usuario.github.io/driftour-web/",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
