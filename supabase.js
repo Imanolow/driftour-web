@@ -2,8 +2,11 @@
 // Importamos Supabase desde CDN
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
 
-// Importar configuración directamente
+// Importar configuración directamente - NO SE USA config.local.js en ningún caso
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js'
+
+// Verificar que tenemos la configuración correcta
+console.log('ℹ️ Supabase inicializado con config.js (URL + ANON KEY pública)')
 
 // Crear cliente de Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
