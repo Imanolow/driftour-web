@@ -39,7 +39,7 @@ body.night-mode {
   width: 100%;
   max-width: 375px;
   height: 667px;
-  background: white;
+  background: url('icons/Driftour_back.png') center/cover no-repeat;
   border-radius: 25px;
   box-shadow: var(--shadow-strong);
   overflow: hidden;
@@ -50,7 +50,7 @@ body.night-mode {
 }
 
 .container.night-mode {
-  background: var(--night-card);
+  background: url('icons/Driftour_back.png') center/cover no-repeat !important;
   box-shadow: 0 30px 60px rgba(0,0,0,0.4);
 }
 
@@ -120,6 +120,12 @@ body.night-mode {
   color: white;
   letter-spacing: -0.02em;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header-center .logo img {
+  display: block;
+  margin: 0 auto;
+  position: relative;
 }
 
 @keyframes logoGlow {
@@ -594,10 +600,9 @@ body.night-mode {
   left: 0;
   width: 100%;
   height: 70px;
-  background: var(--primary-gradient);
+  background: linear-gradient(135deg, #87CEEB 0%, #B0E0E6 100%);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 20px;
   z-index: 1000;
   box-shadow: var(--shadow-soft);
@@ -605,36 +610,37 @@ body.night-mode {
   backdrop-filter: blur(10px);
 }
 
-.header-left, .header-center, .header-right {
+.header-left {
   display: flex;
   align-items: center;
-  flex: 1;
-}
-
-.header-left {
   justify-content: flex-start;
+  position: absolute;
+  left: 10px;
+  z-index: 1001;
 }
 
 .header-center {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 0 20px; /* Dar espacio para el botón premium */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
 }
 
 .header-right {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
-}
-
-.header-center {
-  justify-content: center;
-}
-
-.header-right {
-  justify-content: flex-end;
+  position: absolute;
+  right: 20px;
+  z-index: 1001;
   gap: 12px;
 }
 
 .night-mode .app-header {
-  background: var(--dark-gradient);
+  background: linear-gradient(135deg, #4A5568 0%, #2D3748 100%);
 }
 
 .user-info {

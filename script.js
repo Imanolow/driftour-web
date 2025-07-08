@@ -260,8 +260,9 @@ function logout() {
         // Usar Supabase para cerrar sesión
         auth.signOut().then(result => {
             if (result.success) {
+                userName = 'Usuario/a';
+                updateUserStatus();
                 showScreen('login-screen');
-                toggleHeader(false);
                 showNotification('Sesión cerrada correctamente', 'info');
             } else {
                 showNotification('Error al cerrar sesión', 'error');
@@ -314,14 +315,9 @@ function showScreen(screenId) {
         targetScreen.classList.add('active');
     }
     
-    // Mostrar/ocultar cabecera según la pantalla
-    const screensWithoutHeader = ['login-screen', 'register-screen'];
-    if (screensWithoutHeader.includes(screenId)) {
-        toggleHeader(false);
-    } else {
-        toggleHeader(true);
-        updateUserStatus();
-    }
+    // Mantener cabecera siempre visible
+    toggleHeader(true);
+    updateUserStatus();
     
     // Resetear rating cuando se muestre la pantalla de valoración
     if (screenId === 'rating-screen') {
@@ -345,14 +341,9 @@ function goBack() {
             targetScreen.classList.add('active');
         }
         
-        // Manejar cabecera
-        const screensWithoutHeader = ['login-screen', 'register-screen'];
-        if (screensWithoutHeader.includes(previousScreen)) {
-            toggleHeader(false);
-        } else {
-            toggleHeader(true);
-            updateUserStatus();
-        }
+        // Mantener cabecera siempre visible
+        toggleHeader(true);
+        updateUserStatus();
         
         console.log('Volviendo a:', previousScreen, 'Historial restante:', navigationHistory);
     } else {
@@ -1251,6 +1242,9 @@ function initializeStaticFavorites() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 DrifTour App inicializada');
     
+    // Asegurar que la cabecera esté visible al cargar la app
+    toggleHeader(true);
+    
     // Cargar mapeo de tipos de tour a IDs
     loadTourTypeMapping();
     
@@ -1339,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     window.addEventListener('userSignedOut', function() {
-        userName = 'Invitado';
+        userName = 'Usuario/a';
         updateUserStatus();
         showNotification('Sesión cerrada', 'info');
         showScreen('login-screen');
@@ -1366,6 +1360,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success) {
                 showNotification('¡Bienvenido! 🎉', 'success');
                 showScreen('map-screen');
+                toggleHeader(true);
             } else {
                 showNotification('Error al iniciar sesión: ' + result.error, 'error');
             }

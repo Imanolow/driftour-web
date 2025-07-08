@@ -1,6 +1,6 @@
 // Configuración de Supabase
-// Importar desde config.js (que no se sube a GitHub)
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js'
+// TEMPORAL: Usar config.local.js para desarrollo local mientras arreglamos seguridad
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.local.js'
 
 // Importamos Supabase desde CDN
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
