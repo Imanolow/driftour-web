@@ -1,30 +1,9 @@
-// Configuración de Supabase
-// Detectar automáticamente si estamos en GitHub Pages o local
-const isGitHubPages = window.location.hostname === 'imanolow.github.io';
-
-let SUPABASE_URL, SUPABASE_ANON_KEY;
-
-if (isGitHubPages) {
-  // En producción (GitHub Pages), usar config.js
-  const config = await import('./config.js');
-  SUPABASE_URL = config.SUPABASE_URL;
-  SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
-} else {
-  // En desarrollo local, usar config.local.js
-  try {
-    const config = await import('./config.local.js');
-    SUPABASE_URL = config.SUPABASE_URL;
-    SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
-  } catch (error) {
-    // Si no existe config.local.js, usar config.js como fallback
-    const config = await import('./config.js');
-    SUPABASE_URL = config.SUPABASE_URL;
-    SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
-  }
-}
-
+// Configuración de Supabase - SIMPLE
 // Importamos Supabase desde CDN
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
+
+// Importar configuración directamente
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js'
 
 // Crear cliente de Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
