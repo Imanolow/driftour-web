@@ -113,8 +113,8 @@ Thumbs.db
 .supabase/
 
 # 🚨 ARCHIVOS CON INFORMACIÓN SENSIBLE (CRÍTICO)
-config.js
-config.json
+# config.js - AHORA ES PÚBLICO CON CLAVES REALES
+config-private.js
 config-real-keys.md
 .env
 .env.local

@@ -19,6 +19,10 @@ let audioProgress = 0;
 let audioSpeed = 1;
 let audioInterval;
 
+// Sistema de historial de navegación
+let navigationHistory = [];
+const maxHistorySize = 10;
+
 // Mapeo de tipos de tour a IDs de Supabase
 let tourTypeToIdMap = {}
 
@@ -287,6 +291,19 @@ function subscribeToPremium() {
 }
 
 function showScreen(screenId) {
+    // Obtener pantalla actual antes del cambio
+    const currentScreen = document.querySelector('.screen.active');
+    const currentScreenId = currentScreen ? currentScreen.id : null;
+    
+    // Agregar al historial (excepto si es la misma pantalla o volvemos atrás)
+    if (currentScreenId && currentScreenId !== screenId) {
+        navigationHistory.push(currentScreenId);
+        // Limitar tamaño del historial
+        if (navigationHistory.length > maxHistorySize) {
+            navigationHistory.shift();
+        }
+    }
+    
     // Ocultar todas las pantallas
     const screens = document.querySelectorAll('.screen');
     screens.forEach(screen => screen.classList.remove('active'));
@@ -311,10 +328,42 @@ function showScreen(screenId) {
         currentRating = 0;
         updateRatingButtons();
     }
+    
+    console.log('Navegando a:', screenId, 'Historial:', navigationHistory);
+}
+
+// Función para ir atrás en el historial
+function goBack() {
+    if (navigationHistory.length > 0) {
+        const previousScreen = navigationHistory.pop();
+        // Navegar sin agregar al historial
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => screen.classList.remove('active'));
+        
+        const targetScreen = document.getElementById(previousScreen);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+        }
+        
+        // Manejar cabecera
+        const screensWithoutHeader = ['login-screen', 'register-screen'];
+        if (screensWithoutHeader.includes(previousScreen)) {
+            toggleHeader(false);
+        } else {
+            toggleHeader(true);
+            updateUserStatus();
+        }
+        
+        console.log('Volviendo a:', previousScreen, 'Historial restante:', navigationHistory);
+    } else {
+        // Si no hay historial, ir al mapa principal
+        showScreen('map-screen');
+    }
 }
 
 // Hacer las funciones accesibles globalmente para onclick
 window.showScreen = showScreen;
+window.goBack = goBack;
 window.closePopup = closePopup;
 window.closeCustomPopup = closeCustomPopup;
 window.showProfile = showProfile;
@@ -341,11 +390,36 @@ window.shareOn = shareOn;
 
 // Función para seleccionar tour
 function selectTour(tourType) {
+    // Tours temáticos - próximamente
+    if (tourType === 'themed') {
+        showNotification('🎭 Próximamente... Estamos preparando tours temáticos especiales para ti', 'info', 4000);
+        return;
+    }
+    
+    // Tours teatralizados - reservas con guías humanos
+    if (tourType === 'theatrical') {
+        showNotification('🎨 Redirigiendo a página de reservas... Tours con guías humanos disponibles', 'info', 4000);
+        // Aquí se redirigiría a un sistema de reservas real
+        setTimeout(() => {
+            showNotification('📞 Contáctanos para reservar tu tour teatralizado', 'info', 3000);
+        }, 4000);
+        return;
+    }
+    
+    // Tours normales (simple, adventure, historic)
     selectedTour = tourType;
     selectedTourId = tourTypeToIdMap[tourType] || null;
     currentPoint = 1; // Reiniciar el contador
     showScreen('share-screen');
-    showNotification(`Tour ${tourType} seleccionado`, 'success');
+    
+    // Mensaje según el tipo de tour
+    const tourMessages = {
+        'simple': 'Tour Simple seleccionado - ¡GRATIS! 🏛️',
+        'adventure': 'Tour Aventura seleccionado - ¡GRATIS! 🔍',
+        'historic': 'Tour Histórico seleccionado - Con actores reales 👨‍🎓'
+    };
+    
+    showNotification(tourMessages[tourType] || `Tour ${tourType} seleccionado`, 'success');
     
     console.log('Tour seleccionado:', tourType, 'ID:', selectedTourId);
 }
@@ -360,12 +434,35 @@ function selectHumanTour(tourType) {
 async function nextPoint() {
     currentPoint++;
     
-    // Registrar progreso del tour en Supabase
+    // Registrar progreso del tour en Supabase Y LocalStorage
     const currentUser = await auth.getCurrentUser();
     if (currentUser && selectedTourId) {
         try {
             const completed = currentPoint > totalPoints;
             const progress = completed ? totalPoints : currentPoint - 1;
+            
+            // Guardar en localStorage como backup
+            const localProgress = JSON.parse(localStorage.getItem('tour_progress') || '[]');
+            const existingIndex = localProgress.findIndex(p => p.user_id === currentUser.id && p.tour_id === selectedTourId);
+            
+            const progressData = {
+                user_id: currentUser.id,
+                tour_id: selectedTourId,
+                current_point: currentPoint,
+                total_points: totalPoints,
+                progress: progress,
+                completed: completed,
+                last_updated: new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                localProgress[existingIndex] = progressData;
+            } else {
+                localProgress.push(progressData);
+            }
+            
+            localStorage.setItem('tour_progress', JSON.stringify(localProgress));
+            console.log('Progreso guardado localmente:', progressData);
             
             if (completed) {
                 // Completar el tour
@@ -389,6 +486,7 @@ async function nextPoint() {
             }
         } catch (error) {
             console.error('Error al actualizar progreso del tour:', error);
+            showNotification('Progreso guardado localmente', 'info', 2000);
         }
     }
     
