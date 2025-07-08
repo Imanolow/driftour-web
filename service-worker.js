@@ -1,4 +1,4 @@
-const CACHE_NAME = 'driftour-v2';
+const CACHE_NAME = 'driftour-v3';
 // Detectar automáticamente si estamos en GitHub Pages o local
 const isGitHubPages = self.location.hostname === 'imanolow.github.io';
 const BASE_PATH = isGitHubPages ? '/driftour-web' : '';
