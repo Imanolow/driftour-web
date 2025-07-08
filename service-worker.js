@@ -3,6 +3,12 @@ const CACHE_NAME = 'driftour-v1';
 const isGitHubPages = self.location.hostname === 'imanolow.github.io';
 const BASE_PATH = isGitHubPages ? '/driftour-web' : '';
 
+console.log('🔍 Service Worker iniciando:', {
+  hostname: self.location.hostname,
+  isGitHubPages,
+  BASE_PATH
+});
+
 const urlsToCache = [
   BASE_PATH + '/',
   BASE_PATH + '/index.html',
@@ -16,13 +22,22 @@ const urlsToCache = [
   // Agregar más recursos según sea necesario
 ];
 
+console.log('📦 URLs a cachear:', urlsToCache);
+
 // Instalar el service worker
 self.addEventListener('install', (event) => {
+  console.log('⚙️ SW: Instalando...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Cache abierto');
+        console.log('💾 Cache abierto:', CACHE_NAME);
         return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        console.log('✅ SW: Instalación completada');
+      })
+      .catch((error) => {
+        console.error('❌ SW: Error en instalación:', error);
       })
   );
 });

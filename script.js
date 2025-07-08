@@ -1427,16 +1427,25 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
     const basePath = isGitHubPages ? '/driftour-web' : '';
     const swPath = `${basePath}/service-worker.js`;
     
+    console.log('🔍 Detectando entorno:', {
+      hostname: location.hostname,
+      isGitHubPages,
+      basePath,
+      swPath,
+      fullUrl: location.origin + swPath
+    });
+    
     navigator.serviceWorker.register(swPath)
       .then((registration) => {
-        console.log('SW registrado con éxito: ', registration);
+        console.log('✅ SW registrado con éxito: ', registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        console.error('❌ SW registration failed: ', registrationError);
+        console.log('🔧 Intentando sin service worker (app seguirá funcionando)');
       });
   });
 } else if (location.protocol === 'http:') {
-  console.log('Service Worker no registrado (requiere HTTPS)');
+  console.log('ℹ️ Service Worker no registrado (requiere HTTPS)');
 }
 
 // Función para cargar el mapeo de tipos de tour a IDs
