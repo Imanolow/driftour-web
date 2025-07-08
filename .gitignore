@@ -1,3 +1,10 @@
+# SEGURIDAD - CLAVES SENSIBLES (MÁXIMA PRIORIDAD)
+config.local.js
+*.env
+.env
+.env.local
+.env.production
+
 # Logs
 *.log
 npm-debug.log*
