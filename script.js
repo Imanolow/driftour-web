@@ -1417,14 +1417,16 @@ document.addEventListener('DOMContentLoaded', function() {
 // Registrar Service Worker para PWA - SOLUCIÓN DEFINITIVA
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => {
-    // Para GitHub Pages, el SW debe estar en la raíz del dominio
-    const swPath = '/service-worker.js'; // Siempre en la raíz
+    // Detectar si estamos en GitHub Pages y usar la ruta correcta
+    const isGitHubPages = location.hostname === 'imanolow.github.io';
+    const basePath = isGitHubPages ? '/driftour-web' : '';
+    const swPath = `${basePath}/service-worker.js`;
     
-    console.log('� Registrando SW desde raíz:', swPath);
+    console.log('🔍 Registrando SW:', { isGitHubPages, swPath });
     
     navigator.serviceWorker.register(swPath)
       .then((registration) => {
-        console.log('✅ SW registrado con éxito desde raíz:', registration);
+        console.log('✅ SW registrado con éxito:', registration);
       })
       .catch((registrationError) => {
         console.error('❌ SW registration failed:', registrationError);

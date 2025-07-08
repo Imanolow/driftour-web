@@ -1,5 +1,5 @@
 // Versión de la aplicación para forzar refresco
-export const APP_VERSION = 'v8.0.0';
+export const APP_VERSION = 'v8.0.1';
 export const LAST_UPDATE = new Date().toISOString();
 export const BUILD_ID = Math.random().toString(36).substring(2, 15);
 
