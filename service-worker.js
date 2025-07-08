@@ -1,5 +1,8 @@
 const CACHE_NAME = 'driftour-v1';
-const BASE_PATH = '/driftour-web';
+// Detectar automáticamente si estamos en GitHub Pages o local
+const isGitHubPages = self.location.hostname === 'imanolow.github.io';
+const BASE_PATH = isGitHubPages ? '/driftour-web' : '';
+
 const urlsToCache = [
   BASE_PATH + '/',
   BASE_PATH + '/index.html',

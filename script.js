@@ -1422,7 +1422,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    // Detectar si estamos en GitHub Pages o local
+    const isGitHubPages = location.hostname === 'imanolow.github.io';
+    const basePath = isGitHubPages ? '/driftour-web' : '';
+    const swPath = `${basePath}/service-worker.js`;
+    
+    navigator.serviceWorker.register(swPath)
       .then((registration) => {
         console.log('SW registrado con éxito: ', registration);
       })
