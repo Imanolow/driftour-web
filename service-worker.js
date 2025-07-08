@@ -1,4 +1,4 @@
-const CACHE_NAME = 'driftour-v3';
+const CACHE_NAME = 'driftour-v8';
 // Detectar automáticamente si estamos en GitHub Pages o local
 const isGitHubPages = self.location.hostname === 'imanolow.github.io';
 const BASE_PATH = isGitHubPages ? '/driftour-web' : '';
@@ -14,6 +14,8 @@ const urlsToCache = [
   BASE_PATH + '/index.html',
   BASE_PATH + '/styles.css',
   BASE_PATH + '/script.js',
+  BASE_PATH + '/config.js',
+  BASE_PATH + '/app-version.js',
   BASE_PATH + '/supabase.js',
   BASE_PATH + '/stripe.js',
   BASE_PATH + '/manifest.json',
@@ -44,11 +46,14 @@ self.addEventListener('install', (event) => {
 
 // Interceptar peticiones y servir desde cache
 self.addEventListener('fetch', (event) => {
+  // No hay necesidad de redirigir config.local.js ya que no se usa
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         // Devolver desde cache si está disponible
         if (response) {
+          console.log('📦 Sirviendo desde cache:', event.request.url);
           return response;
         }
         
@@ -59,7 +64,7 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
           
-          // Clonar la respuesta
+          // Clonar y cachear la respuesta
           const responseToCache = response.clone();
           
           caches.open(CACHE_NAME)
@@ -75,17 +80,25 @@ self.addEventListener('fetch', (event) => {
 
 // Actualizar el cache cuando sea necesario
 self.addEventListener('activate', (event) => {
+  console.log('🔄 SW: Activando y limpiando caches antiguos...');
+  
+  // Claim clients para tomar control inmediato
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Eliminando cache antiguo:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Eliminar caches antiguos
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('🗑️ Eliminando cache antiguo:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Tomar control de todas las páginas abiertas
+      self.clients.claim()
+    ])
   );
 });
 
