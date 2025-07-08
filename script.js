@@ -1422,15 +1422,26 @@ document.addEventListener('DOMContentLoaded', function() {
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => {
-    // Detectar si estamos en GitHub Pages o local
-    const isGitHubPages = location.hostname === 'imanolow.github.io';
-    const basePath = isGitHubPages ? '/driftour-web' : '';
-    const swPath = `${basePath}/service-worker.js`;
+    // FORZAR detección basada en URL completa
+    const currentUrl = window.location.href;
+    const isGitHubPages = currentUrl.includes('imanolow.github.io');
+    const isSubdirectory = currentUrl.includes('/driftour-web/');
     
-    console.log('🔍 Detectando entorno:', {
+    // Determinar ruta del service worker
+    let swPath;
+    if (isGitHubPages && isSubdirectory) {
+      swPath = '/driftour-web/service-worker.js';
+    } else if (isGitHubPages) {
+      swPath = '/driftour-web/service-worker.js'; // Forzar siempre para GitHub Pages
+    } else {
+      swPath = '/service-worker.js'; // Local
+    }
+    
+    console.log('🔍 DEBUGGING SW:', {
+      currentUrl,
       hostname: location.hostname,
       isGitHubPages,
-      basePath,
+      isSubdirectory,
       swPath,
       fullUrl: location.origin + swPath
     });
@@ -1441,7 +1452,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
       })
       .catch((registrationError) => {
         console.error('❌ SW registration failed: ', registrationError);
-        console.log('🔧 Intentando sin service worker (app seguirá funcionando)');
+        console.log('🔧 App funciona sin service worker');
       });
   });
 } else if (location.protocol === 'http:') {
